@@ -14,7 +14,7 @@ void limpa_Buffer() {
     while ((c = getchar()) != '\n' && c != EOF);
 }
 
-int tamanho(FILE *arq) {
+int tamanho(FILE* arq) {
     long pos = ftell(arq);
     fseek(arq, 0, SEEK_END);
     long fim = ftell(arq);
@@ -22,11 +22,11 @@ int tamanho(FILE *arq) {
     return (int)(fim / sizeof(reg));
 }
 
-void cadastrar(FILE *arq) {
+void cadastrar(FILE* arq) {
     reg r;
 
     printf("\n=== Cadastrar ===\n");
-    printf("Nome do propriet·rio: ");
+    printf("Nome do propriet√°rio: ");
     fgets(r.nome, sizeof(r.nome), stdin);
     r.nome[strcspn(r.nome, "\n")] = '\0';
 
@@ -44,8 +44,8 @@ void cadastrar(FILE *arq) {
     printf("\nRegistro salvo com sucesso!\n");
 }
 
-void consultar(FILE *arq) {
-    int vaga;
+void consultar(FILE* arq) {
+    char vaga;
     reg r;
     int ref = 0;
     int total = tamanho(arq);
@@ -54,7 +54,7 @@ void consultar(FILE *arq) {
         return;
     }
 
-    printf("\nDigite o n˙mero da vaga que deseja consultar: ");
+    printf("\nDigite o n√∫mero da vaga que deseja consultar: ");
     scanf("%d", &vaga);
     limpa_Buffer();
 
@@ -66,7 +66,7 @@ void consultar(FILE *arq) {
             ref = 1;
 
             printf("\n=== Dados da vaga ===\n");
-            printf("Propriet·rio: %s\n", r.nome);
+            printf("Propriet√°rio: %s\n", r.nome);
             printf("Placa: %s\n", r.placa);
             printf("Vaga: %d\n", r.vaga);
             break;
@@ -78,10 +78,60 @@ void consultar(FILE *arq) {
     }
 }
 
+void gerarrelatorio(FILE * arq) {
+    int total, i, ref;
+    reg r;
+    FILE* rel;
+    while(arq != NULL) {
+        fread(&r, sizeof(reg), 1, arq);
+
+        arq = fopen("C:\\Rel\\relatorio.txt","w");
+
+        fputs(r.nome, arq);
+        fputs(r.placa, arq);
+
+        fclose(arq);
+        }
+}
+
+
+void deldado(FILE * arq) {
+	char vaga;
+    reg r;
+    int ref = 0;
+    int total = tamanho(arq);
+    if (total == 0) {
+        printf("\nNenhum registro cadastrado.\n");
+        return;
+    }
+
+    printf("\nDigite o n√∫mero da vaga que deseja deletar: ");
+    scanf("%d", &vaga);
+    limpa_Buffer();
+
+    fseek(arq, 0, SEEK_SET);
+
+    for (int i = 0; i < total; i++) {
+        fread(&r, sizeof(reg), 1, arq);
+        if (r.vaga == vaga) {
+            ref = 1;
+            
+            strcpy(r.nome, "DELETADO");
+			strcpy(r.placa, "DELETADO");
+            break;
+        }
+    }
+
+    if (!ref) {
+        printf("\nNenhum registro encontrado para essa vaga.\n");
+    }
+}
+
+
 int main() {
     setlocale(LC_ALL, "");
 
-    FILE *arq = fopen("estacionamento.dat", "r+b");
+    FILE* arq = fopen("estacionamento.dat", "r+b");
 
     if (arq == NULL) {
         arq = fopen("estacionamento.dat", "w+b");
@@ -95,31 +145,55 @@ int main() {
 
     do {
         printf("\n========== Controle de Estacionamento =========\n");
-        printf("1. Cadastrar carro\n");
-        printf("2. Consultar registro\n");
-        printf("3. Consultar tamanho\n");
-        printf("0. Sair do programa\n");
-        printf("OpÁ„o: ");
+        printf("1. Cadastrar carro.\n");
+        printf("2. Consultar registro.\n");
+        printf("3. Consultar tamanho.\n");
+        printf("4. Gerar relat√≥rio.\n");
+        printf("5. Deletar dado.\n");
+        printf("0. Sair do programa.\n");
+        printf("Op√ß√£o: ");
         scanf("%d", &opcao);
         limpa_Buffer();
         switch (opcao) {
-            case 1:
-                cadastrar(arq);
-                break;
+        case 1:
+            cadastrar(arq);
+            break;
 
-            case 2:
-                consultar(arq);
-                system("PAUSE");
-                break;
+        case 2: {
 
-            case 3: {
-                int total = tamanho(arq);
-                printf("\nTotal de registros: %d\n", total);
-                break;
-            }
+            consultar(arq);
+            system("PAUSE");
+            break;
+        }
 
-            default:
-                printf("OpÁ„o inv·lida!\n");
+        case 3: {
+            int total = tamanho(arq);
+            printf("\nTotal de registros: %d\n", total);
+            system("PAUSE");
+            break;
+        }
+
+        case 4: {
+            gerarrelatorio(arq);
+            printf("Relat√≥ro gerado, observe sua pasta.");
+            system("PAUSE");
+            break;
+        }
+
+        case 5: {
+            deldado(arq);
+            printf("Dados da vaga deletados");
+            system("PAUSE");
+            break;
+        }
+
+        case 0: {
+
+            break;
+        }
+
+        default:
+            printf("Op√ß√£o inv√°lida!\n");
         }
     } while (opcao != 0);
     fclose(arq);
